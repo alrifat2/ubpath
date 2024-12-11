@@ -1,133 +1,76 @@
-import { useCallback, useMemo } from "react";
 import {
+  ReactFlowProvider,
   ReactFlow,
-  MiniMap,
   Controls,
   Background,
-  useNodesState,
-  useEdgesState,
-  addEdge,
-  Node,
-  Edge,
-  Connection,
-  ConnectionMode,
+  NodeTypes,
   Panel,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import CourseNode from "./components/nodes/CourseNode";
+import { LogIn, Info } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import CourseNode from "./features/graph/components/CourseNode";
+import { useGraphData } from "./features/graph/hooks/useGraphData";
+import InfoModal from "./features/modal/components/InfoModal";
+import { useInfoModal } from "./features/modal/hooks/useInfoModal";
 
-const nodeTypes = {
-  courseNode: CourseNode,
+const nodeTypes: NodeTypes = {
+  course: CourseNode,
 };
 
-const edgeTypes = {
-  prerequisite: { animated: true, style: { stroke: "#f59e0b" } },
-  corequisite: { animated: true, style: { stroke: "#8b5cf6" } },
-  prerequisiteFor: { animated: true, style: { stroke: "#3b82f6" } },
-};
-
-const initialNodes: Node[] = [
-  {
-    id: "cse115",
-    type: "courseNode",
-    position: { x: 0, y: 0 },
-    data: {
-      code: "CSE 115",
-      name: "Introduction to Computer Science I",
-      credits: 4,
-      type: "current",
-    },
-  },
-  {
-    id: "cse116",
-    type: "courseNode",
-    position: { x: 200, y: 100 },
-    data: {
-      code: "CSE 116",
-      name: "Introduction to Computer Science II",
-      credits: 4,
-      type: "future",
-    },
-  },
-];
-
-const initialEdges: Edge[] = [
-  {
-    id: "e1-2",
-    source: "cse115",
-    target: "cse116",
-    type: "prerequisite",
-    label: "Prerequisite",
-  },
-];
-
-export default function App() {
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-
-  const onConnect = useCallback(
-    (params: Connection) => setEdges((eds) => addEdge(params, eds)),
-    [setEdges]
-  );
-
-  const memorizedNodeTypes = useMemo(() => nodeTypes, []);
+function App() {
+  const navigate = useNavigate();
+  const { isOpen, openModal, closeModal } = useInfoModal();
+  const { nodes, edges, onNodesChange, onEdgesChange, onConnect } =
+    useGraphData();
 
   return (
-    <div className="w-screen h-screen bg-[#fdfbf8]">
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
-        nodeTypes={memorizedNodeTypes}
-        edgeTypes={edgeTypes}
-        connectionMode={ConnectionMode.Loose}
-        fitView
-        fitViewOptions={{ padding: 0.2 }}
-        deleteKeyCode={["Backspace", "Delete"]}
-        multiSelectionKeyCode={["Meta", "Ctrl"]}
-        selectionKeyCode={["Shift"]}
-        defaultEdgeOptions={{
-          type: "prerequisite",
-          animated: true,
-        }}
-      >
-        <Background color="#99999920" variant="dots" gap={12} size={1} />
-
-        <Controls
-          position="bottom-right"
-          showInteractive={false}
-          className="bg-white/50 backdrop-blur-sm"
-        />
-
-        <MiniMap
-          nodeColor={(node) => {
-            switch (node.data?.type) {
-              case "prerequisite":
-                return "#f59e0b";
-              case "corequisite":
-                return "#8b5cf6";
-              case "current":
-                return "#3b82f6";
-              default:
-                return "#e5e7eb";
-            }
-          }}
-          maskColor="#fdfbf820"
-          className="bg-white/50 backdrop-blur-sm rounded-lg"
-        />
-
-        <Panel
-          position="top-left"
-          className="bg-white/50 backdrop-blur-sm p-4 rounded-xl"
+    <div className="w-screen h-screen">
+      <ReactFlowProvider>
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onConnect={onConnect}
+          nodeTypes={nodeTypes}
+          nodesDraggable={false}
+          nodesConnectable={false}
+          elementsSelectable={false}
+          fitView
         >
-          <h1 className="text-2xl font-bold text-gray-900">Course Map</h1>
-          <p className="text-sm text-gray-600">
-            Visualize your course prerequisites and plan your academic journey
-          </p>
-        </Panel>
-      </ReactFlow>
+          <Panel position="top-left" className="pointer-events-auto">
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={openModal}
+              className="p-2 text-gray-800 hover:text-blue-600 transition-colors"
+            >
+              <Info className="w-6 h-6" />
+            </motion.button>
+          </Panel>
+          <Panel position="top-right" className="pointer-events-auto">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => navigate("/auth/signin")}
+              className="px-3 py-2 rounded-md bg-white/25 backdrop-blur-md border shadow-lg 
+              hover:bg-white/30 transition-all duration-300 flex items-center gap-2
+              hover:shadow-xl"
+            >
+              <LogIn className="w-5 h-5 text-gray-800" />
+              <span className="text-gray-800 font-medium">Sign In</span>
+            </motion.button>
+          </Panel>
+          <Background />
+          <Controls position="bottom-left" />
+        </ReactFlow>
+      </ReactFlowProvider>
+
+      <InfoModal isOpen={isOpen} onClose={closeModal} />
     </div>
   );
 }
+
+export default App;

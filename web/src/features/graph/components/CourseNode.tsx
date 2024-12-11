@@ -1,50 +1,26 @@
-import { memo } from "react";
-import { Handle, Position, NodeProps } from "@xyflow/react";
+import { Handle, Position, Node } from "@xyflow/react";
+import { Course } from "../../../types/graph";
 
-interface CourseNodeData {
-  code: string;
-  name: string;
-  credits: number;
-  type: "prerequisite" | "corequisite" | "current" | "future";
-}
-
-function CourseNode({ data }: NodeProps<CourseNodeData>) {
-  const getNodeStyle = () => {
-    switch (data.type) {
-      case "prerequisite":
-        return "border-amber-500 bg-amber-50";
-      case "corequisite":
-        return "border-purple-500 bg-purple-50";
-      case "current":
-        return "border-blue-500 bg-blue-50";
-      case "future":
-        return "border-gray-300 bg-gray-50";
-      default:
-        return "border-gray-300 bg-white";
-    }
-  };
-
+const CourseNode = ({ data }: Node<Course>) => {
   return (
-    <div
-      className={`px-4 py-2 shadow-lg rounded-lg border-2 ${getNodeStyle()}`}
-    >
-      <Handle type="target" position={Position.Top} className="!bg-gray-400" />
+    <div className="w-[100px] h-[100px] rounded-full flex items-center justify-center bg-white border-2 border-stone-400 shadow-md relative">
+      <Handle
+        type="target"
+        position={Position.Top}
+        className="!opacity-0"
+        style={{ width: "1px", height: "1px" }}
+      />
 
-      <div className="min-w-[180px]">
-        <div className="font-mono text-sm font-bold text-gray-700">
-          {data.code}
-        </div>
-        <div className="text-sm font-medium text-gray-900">{data.name}</div>
-        <div className="text-xs text-gray-500">{data.credits} credits</div>
-      </div>
+      <div className="text-center font-bold">{data.code}</div>
 
       <Handle
         type="source"
         position={Position.Bottom}
-        className="!bg-gray-400"
+        className="!opacity-0"
+        style={{ width: "1px", height: "1px" }}
       />
     </div>
   );
-}
+};
 
-export default memo(CourseNode);
+export default CourseNode;
